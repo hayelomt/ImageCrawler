@@ -43,15 +43,28 @@ class ImageDownloader:
             self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Already downloaded:' +
                                 img_link + '\n')
         else:
-            try:
-                with open(file_path, 'wb') as img_out:
-                    # Open image output file for writing
-                    image_req = urllib.request.Request(img_link, headers=self.headers)
-                    # Download image from link and save to output file
-                    with urllib.request.urlopen(image_req) as image_file:
-                        img_out.write(image_file.read())
-                        sleep(0.2)
-            except:
-                if print_progress:
-                    print('Error downloading:', img_link)
-                self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Error downloading:' + img_link)
+            retry = 0
+            while retry <= 3:
+                try:
+                    with open(file_path, 'wb') as img_out:
+                        # Open image output file for writing
+                        image_req = urllib.request.Request(img_link, headers=self.headers)
+                        # Download image from link and save to output file
+                        with urllib.request.urlopen(image_req) as image_file:
+                            img_out.write(image_file.read())
+                            sleep(0.2)
+                    retry = 4
+                except:
+                    retry += 1
+                    if print_progress:
+                        print('Error downloading:', img_link)
+                    self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Error downloading:' + img_link)
+                    if retry <= 3:
+                        if print_progress:
+                            print('Retrying' +retry + ':', img_link)
+                        self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Retrying ' + retry + ':' + img_link)
+                    else:
+                        if print_progress:
+                            print('Failed downloading:', img_link)
+                        self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Failed downloading:' + img_link)
+                        
