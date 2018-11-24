@@ -55,14 +55,15 @@ class ImageDownloader:
                             sleep(0.2)
                     retry = 4
                 except:
+                    sleep(1)
                     retry += 1
                     if print_progress:
                         print('Error downloading:', img_link)
                     self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Error downloading:' + img_link)
                     if retry <= 3:
                         if print_progress:
-                            print('Retrying' +retry + ':', img_link)
-                        self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Retrying ' + retry + ':' + img_link)
+                            print('Retrying' +str(retry) + ':', img_link)
+                        self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Retrying ' + str(retry) + ':' + img_link)
                     else:
                         if print_progress:
                             print('Failed downloading:', img_link)
