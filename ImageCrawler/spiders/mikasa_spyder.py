@@ -8,39 +8,29 @@ import scrapy
 os.makedirs('data', exist_ok=True)
 f = open(os.path.join('data', 'links'), 'a')
 
-class AnimeListSpider(scrapy.Spider):
-    name = "animelist"
+class MikassaSpider(scrapy.Spider):
+    name = "mikassa"
 
     start_urls = [
-        "https://myanimelist.net/character.php"
+        "https://wall.alphacoders.com/tags.php?tid=19575"
     ]
 
     def __init__(self, category=None, *args, **kwargs):
-        super(AnimeListSpider, self).__init__(*args, **kwargs)
+        super(MikassaSpider, self).__init__(*args, **kwargs)
         self.imageDownloader = imgDownloader.ImageDownloader()
 
     def parse(self, response):
         links = [img_link for img_link in 
-        response.css('table.characters-favorites-ranking-table tr.ranking-list td.people div.information a::attr(href)').extract()]
+        response.css('div#container_page div.thumb-container div.boxgrid a img::attr(src)').extract()]
 
         for link in links:
+            self.imageDownloader.download(link)
             print('URL:', response.url, ' Link:', link)
             f.write(response.url + '\t' + link + '\n')
         #     yield scrapy.Request(link, callback=self.parse_image)
 
         f.write('\n')
 
-        next_page = response.css('div.pagination a.next::attr(href)').extract_first()
+        next_page = response.css('ul.pagination a#next_page::attr(href)').extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
-
-    def parse_image(self, response):
-        """
-        parse image from followed link
-        """
-
-        link = response.css('div#content div a img::attr(src)').extract_first()
-        self.imageDownloader.download(link)
-        print('\tImage URL:', response.url, ' Link:', link)
-        f.write('\tImage ' + response.url + '\t' + link + '\n')
-

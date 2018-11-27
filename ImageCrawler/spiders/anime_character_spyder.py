@@ -1,14 +1,13 @@
 import sys
-sys.path.append('./ImageCrawler/utils')
+import os
+sys.path.append(os.path.join('.','ImageCrawler','utils'))
 import imgDownloader
-# from dir_utils import getStartingPage
+from dir_utils import getStartingPage
 
 import scrapy
-import os
 
 os.makedirs('data', exist_ok=True)
-f = open('data/links', 'a')
-# URL = getStartingPage('https://www.anime-planet.com/characters/all')
+f = open(os.path.join('data', 'links'), 'a')
 
 class AnimeCharacterSpider(scrapy.Spider):
     name = "animecharacter"
@@ -32,6 +31,6 @@ class AnimeCharacterSpider(scrapy.Spider):
 
         f.write('\n')
 
-        next_page = response.css('div.pagination ul.nav li.next a::attr(href)').extract_first()
+        next_page = response.css('div.pagination ul.nav li.next a.next::attr(href)').extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)

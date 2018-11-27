@@ -1,18 +1,18 @@
 import sys
-sys.path.append('./ImageCrawler/utils')
+import os
+sys.path.append(os.path.join('.','ImageCrawler','utils'))
 import imgDownloader
 
 import scrapy
-import os
 
 os.makedirs('data', exist_ok=True)
-f = open('data/links', 'a')
+f = open(os.path.join('data', 'links'), 'a')
 
 class AhoonSpider(scrapy.Spider):
     name = "ahoon"
 
     start_urls = [
-        "https://ahoonstudies.com"
+        "http://localhost:4000"
     ]
 
     def __init__(self, category=None, *args, **kwargs):
