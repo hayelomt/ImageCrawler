@@ -26,7 +26,7 @@ class AnimeListSpider(scrapy.Spider):
         for link in links:
             print('URL:', response.url, ' Link:', link)
             f.write(response.url + '\t' + link + '\n')
-        #     yield scrapy.Request(link, callback=self.parse_image)
+            yield scrapy.Request(link, callback=self.parse_image)
 
         f.write('\n')
 

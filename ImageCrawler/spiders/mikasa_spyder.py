@@ -21,16 +21,26 @@ class MikassaSpider(scrapy.Spider):
 
     def parse(self, response):
         links = [img_link for img_link in 
-        response.css('div#container_page div.thumb-container div.boxgrid a img::attr(src)').extract()]
+        response.css('div#container_page div.thumb-container div.boxgrid a::attr(href)').extract()]
 
         for link in links:
-            self.imageDownloader.download(link)
             print('URL:', response.url, ' Link:', link)
             f.write(response.url + '\t' + link + '\n')
-        #     yield scrapy.Request(link, callback=self.parse_image)
+            yield scrapy.Request('https://wall.alphacoders.com/' + link, callback=self.parse_image)
 
         f.write('\n')
 
         next_page = response.css('ul.pagination a#next_page::attr(href)').extract_first()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
+
+    
+    def parse_image(self, response):
+        """
+        parse image from followed link
+        """
+
+        link = response.css('div#page_container div.img-container-desktop a img::attr(src)').extract_first()
+        self.imageDownloader.download(link)
+        print('\tImage URL:', response.url, ' Link:', link)
+        f.write('\tImage ' + response.url + '\t' + link + '\n')
