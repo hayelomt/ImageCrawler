@@ -1,9 +1,36 @@
 import os
 import urllib
 import urllib.request
+import sys
 from urllib.parse import urlparse
 from time import gmtime, strftime, sleep
 
+def chunk_report(bytes_so_far, chunk_size, total_size):
+    percent = float(bytes_so_far) / total_size
+    percent = round(percent*100, 2)
+    sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
+                    (bytes_so_far, total_size, percent))
+    
+    if bytes_so_far >= total_size:
+        sys.stdout.write('\n')
+
+def chunk_read(response, chunk_size=8192, report_hook=None):
+    total_size = int(response.getheader('Content-Length'))
+    bytes_so_far = 0
+    img = b''
+    
+    while 1:
+        chunk = response.read(chunk_size)
+        img = img + chunk
+        bytes_so_far += len(chunk)
+        
+        if not chunk:
+            break
+            
+        if report_hook:
+            report_hook(bytes_so_far, chunk_size, total_size)
+            
+    return img
 
 class ImageDownloader:
 
@@ -18,11 +45,8 @@ class ImageDownloader:
     def download(self, img_link, print_progress=True):
         parsed_url = urlparse(img_link)
 
-        # Recurssively create parent folder to store image
+        # Create parent folder to store image
         parent_folder = self.dir_name + '/' + parsed_url.netloc
-        # for dir_name in parsed_url.path.split('/'):
-        #     if dir_name != '':
-        #         parent_folder = parent_folder + '/' + dir_name
 
         os.makedirs(parent_folder, exist_ok=True)
 
@@ -38,6 +62,7 @@ class ImageDownloader:
 
         # If file is Downloaded skip redownload
         if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+            print('\t\t', file_path)
             if print_progress:
                 print('Already downloaded:', img_link)
             self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Already downloaded:' +
@@ -47,11 +72,13 @@ class ImageDownloader:
             while retry <= 3:
                 try:
                     with open(file_path, 'wb') as img_out:
+                        print(img_link)
                         # Open image output file for writing
                         image_req = urllib.request.Request(img_link, headers=self.headers)
                         # Download image from link and save to output file
-                        with urllib.request.urlopen(image_req) as image_file:
-                            img_out.write(image_file.read())
+                        with urllib.request.urlopen(image_req) as image_response:
+                            img_read = chunk_read(image_response, report_hook=chunk_report)
+                            img_out.write(img_read)
                             sleep(0.2)
                     retry = 4
                 except:
@@ -69,3 +96,5 @@ class ImageDownloader:
                             print('Failed downloading:', img_link)
                         self.log_file.write(strftime("%a, %d %b %Y %H:%M:%S-> ", gmtime()) + 'Failed downloading:' + img_link)
                         
+# d = ImageDownloader()
+# d.download('http://localhost:4000/imgs/course/cover/etabs.jpg')

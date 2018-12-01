@@ -23,7 +23,7 @@ class MikassaSpider(scrapy.Spider):
         links = [img_link for img_link in 
         response.css('div#container_page div.thumb-container div.boxgrid a::attr(href)').extract()]
 
-        for link in links:
+        for link in links[1:]:
             print('URL:', response.url, ' Link:', link)
             f.write(response.url + '\t' + link + '\n')
             yield scrapy.Request('https://wall.alphacoders.com/' + link, callback=self.parse_image)

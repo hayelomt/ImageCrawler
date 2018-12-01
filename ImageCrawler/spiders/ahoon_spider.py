@@ -21,9 +21,9 @@ class AhoonSpider(scrapy.Spider):
 
     def parse(self, response):
         for res in response.css('img::attr(src)').extract():
-            self.imageDownloader.download(res)
             print('URL:', response.url, ' RES:', res)
             f.write(response.url + '\t' + res + '\n')
+            self.imageDownloader.download(res)  
 
         f.write('\n')
 
